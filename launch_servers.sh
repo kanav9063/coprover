@@ -37,7 +37,7 @@ SGLANG_GEN_DP="${SGLANG_GEN_DP:-8}"
 SGLANG_VAL_DP="${SGLANG_VAL_DP:-1}"
 
 HEALTH_TIMEOUT="${HEALTH_TIMEOUT:-180}"
-DOCKER_BIN=""
+DOCKER_CMD=()
 PYTHON_BIN=""
 
 # Parse flags
@@ -74,12 +74,12 @@ require_cmd() {
 
 init_docker_bin() {
     if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
-        DOCKER_BIN="docker"
+        DOCKER_CMD=(docker)
         return 0
     fi
 
     if command -v sudo >/dev/null 2>&1 && sudo -n docker info >/dev/null 2>&1; then
-        DOCKER_BIN="sudo docker"
+        DOCKER_CMD=(sudo docker)
         return 0
     fi
 
@@ -141,7 +141,7 @@ wait_for_health() {
 start_kimina() {
     log "--- Starting kimina-lean-server ---"
 
-    if $DOCKER_BIN ps --format '{{.Names}}' | grep -q "^${KIMINA_CONTAINER}$"; then
+    if "${DOCKER_CMD[@]}" ps --format '{{.Names}}' | grep -q "^${KIMINA_CONTAINER}$"; then
         log "kimina-lean-server is already running."
         wait_for_health "kimina-lean-server" \
             "http://localhost:${KIMINA_PORT}/health" \
@@ -151,15 +151,15 @@ start_kimina() {
     fi
 
     # Remove any stopped container with the same name
-    if $DOCKER_BIN ps -a --format '{{.Names}}' | grep -q "^${KIMINA_CONTAINER}$"; then
+    if "${DOCKER_CMD[@]}" ps -a --format '{{.Names}}' | grep -q "^${KIMINA_CONTAINER}$"; then
         log "Removing stopped kimina-lean-server container ..."
-        $DOCKER_BIN rm "${KIMINA_CONTAINER}" >/dev/null 2>&1
+        "${DOCKER_CMD[@]}" rm "${KIMINA_CONTAINER}" >/dev/null 2>&1
     fi
 
     log "Starting kimina-lean-server container (image: ${KIMINA_IMAGE}, GPU: ${KIMINA_GPU}) ..."
-    $DOCKER_BIN run -d \
+    "${DOCKER_CMD[@]}" run -d \
         --name "${KIMINA_CONTAINER}" \
-        --gpus "\"device=${KIMINA_GPU}\"" \
+        --gpus "device=${KIMINA_GPU}" \
         -p "${KIMINA_PORT}:8000" \
         --ulimit memlock=-1 \
         --ulimit stack=67108864 \
