@@ -232,7 +232,7 @@ python3 evaluate.py \
   --sglang-url http://localhost:30000 \
   --kimina-url http://localhost:8000 \
   --n-samples 4 \
-  --max-problems 6 \
+  --max-problems 7 \
   --output results/minif2f_smoke.json
 ```
 
@@ -254,6 +254,9 @@ The fixture is intentionally tiny:
 - `or_inl_small` checks disjunction introduction from a named hypothesis, which
   is a compact sanity check for proposition-level branching before running the
   full dataset.
+- `or_elim_small` checks disjunction elimination with two continuations, which
+  is a lightweight way to exercise case-split reasoning before scaling up to
+  full MiniF2F prompts.
 
 For the full benchmark and Kimina promptset, run:
 
